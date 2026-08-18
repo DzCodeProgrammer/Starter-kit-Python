@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest a reusable improvement to the starter kit
+title: "feat: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What recurring project setup problem should this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the preferred behavior and any alternatives considered.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Starter-kit fit
+      description: Explain why this belongs in a generic starter rather than an application.
+    validations:
+      required: true
