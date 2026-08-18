@@ -24,6 +24,8 @@ def test_values_are_normalized() -> None:
             "STARTER_KIT_ENVIRONMENT": " PRODUCTION ",
             "STARTER_KIT_DEBUG": "YeS",
             "STARTER_KIT_LOG_LEVEL": "warning",
+            "STARTER_KIT_LOG_FORMAT": "JSON",
+            "STARTER_KIT_BUILD_COMMIT": "abc123",
         }
     )
 
@@ -32,6 +34,8 @@ def test_values_are_normalized() -> None:
         environment="production",
         debug=True,
         log_level="WARNING",
+        log_format="json",
+        build_commit="abc123",
     )
 
 
@@ -47,6 +51,8 @@ def test_false_boolean_values(value: str) -> None:
         ("STARTER_KIT_ENVIRONMENT", "local", "ENVIRONMENT"),
         ("STARTER_KIT_DEBUG", "sometimes", "DEBUG"),
         ("STARTER_KIT_LOG_LEVEL", "TRACE", "LOG_LEVEL"),
+        ("STARTER_KIT_LOG_FORMAT", "xml", "LOG_FORMAT"),
+        ("STARTER_KIT_BUILD_COMMIT", "  ", "BUILD_COMMIT"),
     ],
 )
 def test_invalid_values(variable: str, value: str, message: str) -> None:
@@ -60,4 +66,6 @@ def test_as_dict_contains_public_settings() -> None:
         "environment": "development",
         "debug": False,
         "log_level": "INFO",
+        "log_format": "text",
+        "build_commit": "unknown",
     }

@@ -4,17 +4,27 @@ on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   quality:
     name: Quality checks
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Install uv and Python
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
@@ -27,18 +37,73 @@ jobs:
       - name: Check formatting
         run: uv run ruff format --check .
       - name: Type check
-        run: uv run mypy src tests
+        run: uv run mypy src tests scripts
+      - name: Validate project metadata
+        run: uv run validate-pyproject pyproject.toml
+      - name: Check spelling
+        run: uv run codespell .
+      - name: Check dependency declarations
+        run: uv run deptry src
+      - name: Detect dead code
+        run: uv run vulture src scripts --min-confidence 90
+      - name: Audit workflow security
+        run: uv run zizmor --pedantic .github/workflows
+
+  security:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          enable-cache: true
+          python-version: "3.13"
+      - name: Install dependencies
+        run: uv sync --frozen --all-groups
+      - name: Audit dependencies
+        run: uv run pip-audit --local --skip-editable --cache-dir .pip-audit-cache
+      - name: Generate development SBOM
+        run: >-
+          uv run pip-audit --local --skip-editable --cache-dir .pip-audit-cache
+          --format cyclonedx-json --output sbom-dev.json
+      - name: Upload SBOM
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: development-sbom
+          path: sbom-dev.json
+          if-no-files-found: error
+          retention-days: 14
 
   test:
-    name: Test on Python ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    name: Test Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        include:
+          - os: ubuntu-latest
+            python-version: "3.11"
+          - os: ubuntu-latest
+            python-version: "3.12"
+          - os: ubuntu-latest
+            python-version: "3.13"
+          - os: ubuntu-latest
+            python-version: "3.14"
+          - os: windows-latest
+            python-version: "3.13"
+          - os: macos-latest
+            python-version: "3.13"
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Install uv and Python
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
@@ -52,13 +117,66 @@ jobs:
   build:
     name: Build package
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Install uv and Python
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           enable-cache: true
           python-version: "3.13"
+      - name: Install verification tools
+        run: uv sync --frozen --all-groups
       - name: Build distributions
         run: uv build
+      - name: Verify distribution metadata
+        run: uv run twine check dist/*
+      - name: Verify wheel contents
+        run: uv run check-wheel-contents dist/*.whl
+      - name: Smoke test wheel
+        run: uv run --isolated --no-project --with dist/*.whl tests/smoke_test.py
+      - name: Smoke test source distribution
+        run: uv run --isolated --no-project --with dist/*.tar.gz tests/smoke_test.py
+      - name: Upload distributions
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: python-distributions
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
+
+  docs:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          enable-cache: true
+          python-version: "3.13"
+      - name: Install dependencies
+        run: uv sync --frozen --all-groups
+      - name: Build strict documentation
+        run: uv run mkdocs build --strict
+
+  container:
+    name: Build container
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build image
+        run: docker build --tag starter-kit-python:ci .
+      - name: Run health command
+        run: docker run --rm starter-kit-python:ci health

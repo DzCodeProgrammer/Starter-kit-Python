@@ -21,12 +21,10 @@
 Run the same checks used by CI:
 
 ```bash
-uv run ruff check .
-uv run ruff format --check .
-uv run mypy src tests
-uv run pytest
+uv run python scripts/check.py
 uv build
 ```
 
 Keep pull requests focused, add tests for behavioral changes, and update the
-documentation when public behavior changes.
+documentation and changelog when public behavior changes. Report suspected vulnerabilities
+through the private process in [SECURITY.md](SECURITY.md), not in a public issue.

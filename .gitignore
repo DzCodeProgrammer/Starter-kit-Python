@@ -16,10 +16,14 @@ venv/
 coverage.xml
 htmlcov/
 .mypy_cache/
+.pip-audit-cache/
 .pytest_cache/
 .ruff_cache/
 .tox/
 .uv-cache/
+.hypothesis/
+.mkdocs_cache/
+site/
 
 # Local configuration
 .env
@@ -31,3 +35,7 @@ htmlcov/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Generated security and build reports
+*.sarif
+sbom*.json

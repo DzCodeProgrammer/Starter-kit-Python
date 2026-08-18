@@ -9,6 +9,10 @@ description = "A production-friendly starter kit for Python applications."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
+keywords = ["python", "starter-kit", "template", "cli"]
+authors = [{ name = "DzCodeProgrammer" }]
+license = "MIT"
+license-files = ["LICENSE"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Programming Language :: Python :: 3",
@@ -20,16 +24,35 @@ classifiers = [
   "Typing :: Typed",
 ]
 
+[project.urls]
+Repository = "https://github.com/DzCodeProgrammer/Starter-kit-Python"
+Issues = "https://github.com/DzCodeProgrammer/Starter-kit-Python/issues"
+
 [project.scripts]
 starter-kit = "starter_kit.cli:entrypoint"
 
 [dependency-groups]
 dev = [
-  "mypy>=1.15",
+  "hypothesis>=6.130",
   "pre-commit>=4.2",
   "pytest>=8.3",
   "pytest-cov>=6.0",
+]
+docs = [
+  "mkdocs-material>=9.6",
+  "mkdocstrings[python]>=0.29",
+]
+quality = [
+  "check-wheel-contents>=0.6",
+  "codespell>=2.4",
+  "deptry>=0.23",
+  "mypy>=1.15",
+  "pip-audit>=2.9",
   "ruff>=0.11",
+  "twine>=6.1",
+  "validate-pyproject[all]>=0.24",
+  "vulture>=2.14",
+  "zizmor>=1.7",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -39,17 +62,22 @@ packages = ["src/starter_kit"]
 python_version = "3.11"
 strict = true
 warn_unreachable = true
+show_error_codes = true
+pretty = true
 
 [tool.pytest.ini_options]
 addopts = [
+  "-ra",
   "--strict-config",
   "--strict-markers",
   "--cov=starter_kit",
   "--cov-branch",
   "--cov-report=term-missing",
-  "--cov-fail-under=90",
+  "--cov-fail-under=95",
 ]
+filterwarnings = ["error"]
 testpaths = ["tests"]
+xfail_strict = true
 
 [tool.coverage.run]
 omit = ["src/starter_kit/__main__.py"]
@@ -61,6 +89,7 @@ exclude_also = [
   "if __name__ == .__main__.:",
 ]
 show_missing = true
+fail_under = 95
 
 [tool.ruff]
 extend-exclude = [".uv-cache"]
@@ -68,10 +97,61 @@ line-length = 100
 target-version = "py311"
 
 [tool.ruff.lint]
-select = ["B", "E", "F", "I", "RUF", "UP"]
+select = [
+  "A",
+  "ANN",
+  "ARG",
+  "ASYNC",
+  "B",
+  "C4",
+  "C90",
+  "DTZ",
+  "E",
+  "F",
+  "FA",
+  "FLY",
+  "G",
+  "I",
+  "LOG",
+  "N",
+  "PERF",
+  "PIE",
+  "PLC",
+  "PLE",
+  "PLW",
+  "PT",
+  "PTH",
+  "RET",
+  "RUF",
+  "S",
+  "SIM",
+  "T10",
+  "TC",
+  "UP",
+  "W",
+  "YTT",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"]
 
 [tool.ruff.format]
 quote-style = "double"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.codespell]
+quiet-level = 2
+skip = ".git,.venv,.uv-cache,dist,site,uv.lock"
+
+[tool.deptry]
+known_first_party = ["starter_kit"]
+
+[tool.vulture]
+exclude = [".venv/", ".uv-cache/"]
+min_confidence = 90
+paths = ["src", "scripts"]
 
 [tool.uv]
 required-version = ">=0.8"

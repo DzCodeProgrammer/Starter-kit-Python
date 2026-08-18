@@ -1,0 +1,63 @@
+site_name: Python Starter Kit
+site_description: Production-friendly foundations for Python applications
+site_url: https://dzcodeprogrammer.github.io/Starter-kit-Python/
+repo_url: https://github.com/DzCodeProgrammer/Starter-kit-Python
+repo_name: DzCodeProgrammer/Starter-kit-Python
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  features:
+    - content.code.copy
+    - content.action.edit
+    - navigation.footer
+    - navigation.indexes
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - search.suggest
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            members_order: source
+            show_root_heading: true
+            show_source: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - tables
+
+nav:
+  - Home: index.md
+  - Guides:
+      - Development: development.md
+      - Operations: operations.md
+      - Releasing: releasing.md
+  - Design:
+      - Architecture: architecture.md
+      - Decisions:
+          - ADR 0001 — zero runtime dependencies: adr/0001-zero-runtime-dependencies.md
+      - Open-source references: references.md
+  - API reference: reference.md

@@ -16,9 +16,9 @@ repos:
         entry: uv run mypy src tests
         language: system
         pass_filenames: false
-      - id: pytest
-        name: pytest
-        entry: uv run pytest
+      - id: quality-gate
+        name: Full quality gate
+        entry: uv run python scripts/check.py
         language: system
         pass_filenames: false
         stages: [pre-push]
